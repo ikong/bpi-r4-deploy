@@ -53,6 +53,9 @@ chmod +x files/etc/uci-defaults/99-set-hostname
 mkdir -p files/etc/modules.d
 \cp -r ../my_files/modules.d-eip-inline/* files/etc/modules.d/
 
+# CRYPTO_OFFLOAD_INLINE normally restricted to mt7988 rfb targets; open it to all filogic
+sed -i 's/depends on TARGET_mediatek_mt7988 || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988a-rfb || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988d-rfb/depends on TARGET_mediatek_filogic/' ../mtk-openwrt-feeds/feed/kernel/crypto-eip/Config.in
+
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
