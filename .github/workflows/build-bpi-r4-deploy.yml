@@ -165,41 +165,44 @@ jobs:
             cd ..
           }
 
-          # 4GB non-poe
-          make_release_dir rel-4gb \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-squashfs-sysupgrade.itb" \
-            "bpi-r4.itb" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-nvme-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-sdcard.img.gz" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-emmc-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-snand-img.bin"
+          # Standard R4 variants (not built by pro/pro-wired)
+          if [ "$VARIANT" != "pro" ] && [ "$VARIANT" != "pro-wired" ]; then
+            # 4GB non-poe
+            make_release_dir rel-4gb \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-squashfs-sysupgrade.itb" \
+              "bpi-r4.itb" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-nvme-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-sdcard.img.gz" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-emmc-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-snand-img.bin"
 
-          # 4GB PoE
-          make_release_dir rel-4gb-poe \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-squashfs-sysupgrade.itb" \
-            "bpi-r4-poe.itb" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-nvme-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-sdcard.img.gz" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-emmc-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-snand-img.bin"
+            # 4GB PoE
+            make_release_dir rel-4gb-poe \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-squashfs-sysupgrade.itb" \
+              "bpi-r4-poe.itb" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-nvme-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-sdcard.img.gz" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-emmc-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-snand-img.bin"
 
-          # 8GB non-poe
-          make_release_dir rel-8gb \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-squashfs-sysupgrade.itb" \
-            "bpi-r4.itb" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-nvme-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-sdcard.img.gz" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-emmc-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-snand-img.bin"
+            # 8GB non-poe
+            make_release_dir rel-8gb \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-squashfs-sysupgrade.itb" \
+              "bpi-r4.itb" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-nvme-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-sdcard.img.gz" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-emmc-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-snand-img.bin"
 
-          # 8GB PoE
-          make_release_dir rel-8gb-poe \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-squashfs-sysupgrade.itb" \
-            "bpi-r4-poe.itb" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-sdcard.img.gz" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-emmc-img.bin" \
-            "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-snand-img.bin"
+            # 8GB PoE
+            make_release_dir rel-8gb-poe \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-squashfs-sysupgrade.itb" \
+              "bpi-r4-poe.itb" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-sdcard.img.gz" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-emmc-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-snand-img.bin"
+          fi
 
           # Pro variants
           if [ "$VARIANT" = "pro" ] || [ "$VARIANT" = "pro-wired" ]; then
