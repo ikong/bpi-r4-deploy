@@ -1,10 +1,6 @@
 # OpenWrt + UniFi Stack for Banana Pi BPI-R4
 
-> ⚠️ **This deploy stack is for Banana Pi BPI-R4 only. It cannot be used for BPI-R4 Pro.**
-> BPI-R4 Pro is a different board with a different NAND layout, different 10G hardware, and different device trees.
-> Flashing these images on a BPI-R4 Pro **will brick it**.
-
-Run **OpenWrt** on Banana Pi BPI-R4 (MT7988A, Wi-Fi 7) with an optional **UniFi Protect + UniFi Network Application** stack — a cost-effective alternative to the Ubiquiti UNVR + Cloud Gateway combo.
+Run **OpenWrt** on Banana Pi BPI-R4 and **BPI-R4 Pro 8X** (MT7988A, Wi-Fi 7) with an optional **UniFi Protect + UniFi Network Application** stack — a cost-effective alternative to the Ubiquiti UNVR + Cloud Gateway combo.
 
 Complete install system that runs entirely on GitHub — no Linux machine needed.
 
@@ -43,9 +39,7 @@ Complete install system that runs entirely on GitHub — no Linux machine needed
 
 ## Board variants
 
-> ⚠️ **BPI-R4 Pro is a different board and is NOT supported.**
-> The BPI-R4 Pro has a different NAND partition layout, different 10G port hardware, and different device trees.
-> Flashing these images on a BPI-R4 Pro **will brick it**. This project supports **BPI-R4 only**.
+### BPI-R4
 
 | # | Variant | RAM | WiFi | Notes |
 |---|---------|-----|------|-------|
@@ -61,6 +55,16 @@ Complete install system that runs entirely on GitHub — no Linux machine needed
 | 10 | 8GB PoE wired UniFi | 8 GB | ❌ | PoE, pre-configured for UniFi |
 
 > ⚠️ **UniFi variants (9, 10) require 8 GB RAM.** Running UniFi Network + Protect on 4 GB causes memory exhaustion.
+
+### BPI-R4 Pro 8X
+
+| # | Variant | RAM | WiFi | Notes |
+|---|---------|-----|------|-------|
+| 11 | Pro standard | 8 GB | ✅ | BPI-R4 Pro 8X with WiFi |
+| 12 | Pro wired | 8 GB | ❌ | BPI-R4 Pro 8X, no WiFi |
+| 13 | Pro wired UniFi | 8 GB | ❌ | BPI-R4 Pro 8X, pre-configured for UniFi |
+
+> ℹ️ **BPI-R4 Pro 8X** uses a different NAND layout, different 10G hardware (MxL862xx 8-port switch), and different device trees than the standard BPI-R4. Use the **Pro rescue SD card** when installing on this board — standard BPI-R4 images are not compatible.
 
 ---
 
@@ -344,8 +348,10 @@ Fork this repository on GitHub. **Do not rename the fork** — it must stay name
 1. Go to the **Actions** tab in your fork.
 2. Select **Build BPI-R4 Deploy**.
 3. Click **Run workflow**:
-   - **standard** — builds all WiFi variants (4GB + 8GB, standard + PoE) → 4 releases.
-   - **wired** — builds all wired variants (4GB + 8GB, standard + PoE + UniFi) → 6 releases.
+   - **standard** — builds all BPI-R4 WiFi variants (4GB + 8GB, standard + PoE) → 4 releases.
+   - **wired** — builds all BPI-R4 wired variants (4GB + 8GB, standard + PoE + UniFi) → 6 releases.
+   - **pro** — builds BPI-R4 Pro 8X WiFi variant → 1 release.
+   - **pro-wired** — builds BPI-R4 Pro 8X wired + UniFi variants → 2 releases.
 4. After the workflow finishes (~2 hours), releases will be created in your fork.
 
 ### Step 5 — Install from your fork
@@ -420,12 +426,16 @@ This workflow runs on GitHub-hosted runners where free disk space is not guarant
 
 | File / Directory | Description |
 |------------------|-------------|
-| `builder-universal.sh` | Build script for all WiFi variants |
-| `builder-wired-universal.sh` | Build script for all wired variants (includes Docker/UniFi prerequisites) |
-| `my_defconfig-universal` | Package config for WiFi builds |
-| `my_defconfig-wired-universal` | Package config for wired builds |
+| `builder-wifimgr-universal.sh` | Build script for all BPI-R4 WiFi variants |
+| `builder-wired-universal.sh` | Build script for all BPI-R4 wired variants (includes Docker/UniFi prerequisites) |
+| `builder-pro-universal.sh` | Build script for BPI-R4 Pro 8X WiFi variant |
+| `builder-pro-wired-universal.sh` | Build script for BPI-R4 Pro 8X wired + UniFi variants |
+| `configs/my_defconfig-wifimgr-universal` | Package config for BPI-R4 WiFi builds |
+| `configs/my_defconfig-wired-universal` | Package config for BPI-R4 wired builds |
+| `configs/my_defconfig-wifimgr-universal-pro` | Package config for Pro 8X WiFi builds |
+| `configs/my_defconfig-wired-universal-pro` | Package config for Pro 8X wired builds |
 | `my_files/` | Patches, custom files, install scripts |
-| `rescue/bpi-r4-rescue-sdcard.img.gz` | Static rescue SD card image (same for all variants) |
+| `rescue/bpi-r4-rescue-sdcard.img.gz` | Static rescue SD card image for BPI-R4 |
 | `unifi/` | UniFi stack scripts (distributed in UniFi releases) |
 | `.github/workflows/build-bpi-r4-deploy.yml` | Build workflow |
 
