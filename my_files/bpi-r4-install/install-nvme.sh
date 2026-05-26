@@ -3,6 +3,7 @@
 # Run from NAND rescue system
 
 NVME_DEV="/dev/nvme0n1"
+IS_PRO=0
 GH_USER="woziwrt"
 GH_REPO="bpi-r4-deploy"
 RED='\033[0;31m'
@@ -20,18 +21,24 @@ printf "\n"
 
 printf "Select your board variant:\n"
 printf "\n"
-printf "  1) 4GB standard (WiFi)\n"
-printf "  2) 4GB wired (no WiFi)\n"
-printf "  3) 4GB PoE (WiFi)\n"
-printf "  4) 4GB PoE wired (no WiFi)\n"
-printf "  5) 8GB standard (WiFi)\n"
-printf "  6) 8GB wired (no WiFi)\n"
-printf "  7) 8GB PoE (WiFi)\n"
-printf "  8) 8GB PoE wired (no WiFi)\n"
-printf "  9) 8GB wired UniFi\n"
-printf " 10) 8GB PoE wired UniFi\n"
+printf "  BPI-R4:\n"
+printf "   1) 4GB standard (WiFi)\n"
+printf "   2) 4GB wired (no WiFi)\n"
+printf "   3) 4GB PoE (WiFi)\n"
+printf "   4) 4GB PoE wired (no WiFi)\n"
+printf "   5) 8GB standard (WiFi)\n"
+printf "   6) 8GB wired (no WiFi)\n"
+printf "   7) 8GB PoE (WiFi)\n"
+printf "   8) 8GB PoE wired (no WiFi)\n"
+printf "   9) 8GB wired UniFi\n"
+printf "  10) 8GB PoE wired UniFi\n"
 printf "\n"
-printf "Enter choice [1-10]: "
+printf "  BPI-R4 Pro 8X:\n"
+printf "  11) Pro standard (WiFi)\n"
+printf "  12) Pro wired (no WiFi)\n"
+printf "  13) Pro wired UniFi\n"
+printf "\n"
+printf "Enter choice [1-13]: "
 read VARIANT
 
 case "$VARIANT" in
@@ -45,6 +52,9 @@ case "$VARIANT" in
     8) GH_TAG="release-8gb-poe-wired";       ITB_NAME="bpi-r4-poe.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin" ;;
     9) GH_TAG="release-8gb-wired-unifi";     ITB_NAME="bpi-r4.itb";     IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-nvme-img.bin" ;;
    10) GH_TAG="release-8gb-poe-wired-unifi"; ITB_NAME="bpi-r4-poe.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin" ;;
+   11) GH_TAG="release-pro-standard";        ITB_NAME="bpi-r4-pro.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-nvme-img.bin"; IS_PRO=1 ;;
+   12) GH_TAG="release-pro-wired";           ITB_NAME="bpi-r4-pro.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-nvme-img.bin"; IS_PRO=1 ;;
+   13) GH_TAG="release-pro-unifi";           ITB_NAME="bpi-r4-pro.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-nvme-img.bin"; IS_PRO=1 ;;
     *)
         printf "\n${RED}ERROR: Invalid choice!${NC}\n\n"
         exit 1
@@ -57,6 +67,43 @@ IMG="/tmp/${IMG_NAME}"
 printf "\n"
 printf "  Selected: %s\n" "$GH_TAG"
 printf "\n"
+
+# || Pro: NVMe device detection (two PCIe slots) ||||||||||||||||||||||||||||
+
+if [ "$IS_PRO" = "1" ]; then
+    printf "[ Pro ] Detecting NVMe device...\n"
+
+    NVME_LIST=""
+    for DEV in /dev/nvme0n1 /dev/nvme1n1; do
+        [ -b "$DEV" ] && NVME_LIST="${NVME_LIST} ${DEV}"
+    done
+
+    NVME_COUNT=$(echo "$NVME_LIST" | wc -w)
+
+    if [ "$NVME_COUNT" -eq 0 ]; then
+        printf "\n${RED}ERROR: No NVMe disk found. Check PCIe connection and reboot.${NC}\n\n"
+        exit 1
+    elif [ "$NVME_COUNT" -eq 1 ]; then
+        NVME_DEV=$(echo "$NVME_LIST" | tr -d ' ')
+        printf "        OK -- found %s\n\n" "$NVME_DEV"
+    else
+        printf "\n  Multiple NVMe disks found. Select the target disk:\n\n"
+        N=1
+        for DEV in $NVME_LIST; do
+            SIZE=$(cat /sys/block/$(basename $DEV)/size 2>/dev/null || echo "?")
+            printf "  %d) %s\n" "$N" "$DEV"
+            N=$((N + 1))
+        done
+        printf "\n  Enter choice: "
+        read NVME_CHOICE
+        NVME_DEV=$(echo "$NVME_LIST" | tr ' ' '\n' | sed -n "${NVME_CHOICE}p")
+        if [ ! -b "$NVME_DEV" ]; then
+            printf "\n${RED}ERROR: Invalid choice!${NC}\n\n"
+            exit 1
+        fi
+        printf "        OK -- selected %s\n\n" "$NVME_DEV"
+    fi
+fi
 
 # || 1. Check boot media |||||||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -74,13 +121,16 @@ printf "        OK -- running from NAND rescue\n\n"
 
 printf "[ 2/7 ] Checking NVMe device...\n"
 
-if [ ! -b "$NVME_DEV" ]; then
-    printf "\n${RED}ERROR: NVMe disk not found (%s does not exist).${NC}\n" "$NVME_DEV"
-    printf "       Check physical connection and reboot.\n\n"
-    exit 1
+if [ "$IS_PRO" = "1" ]; then
+    printf "        OK -- %s (detected above)\n\n" "$NVME_DEV"
+else
+    if [ ! -b "$NVME_DEV" ]; then
+        printf "\n${RED}ERROR: NVMe disk not found (%s does not exist).${NC}\n" "$NVME_DEV"
+        printf "       Check physical connection and reboot.\n\n"
+        exit 1
+    fi
+    printf "        OK -- found %s\n\n" "$NVME_DEV"
 fi
-
-printf "        OK -- found %s\n\n" "$NVME_DEV"
 
 # || 3. SMART health check ||||||||||||||||||||||||||||||||||||||||||||||||||||
 
