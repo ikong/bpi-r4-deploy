@@ -965,15 +965,17 @@ async function wireless_restore(content) {
 
 async function steerd_status() {
     try {
-        const [pidRes, logRes] = await Promise.all([
+        const [pidRes, logRes, scriptRes] = await Promise.all([
             fs.exec('/bin/sh', ['-c', 'pgrep -f mlo-steerd | head -1']),
-            fs.exec('/bin/sh', ['-c', 'tail -25 /tmp/steerd.log 2>/dev/null || true'])
+            fs.exec('/bin/sh', ['-c', 'tail -25 /tmp/steerd.log 2>/dev/null || true']),
+            fs.exec('/bin/sh', ['-c', 'test -f /root/mlo-steerd.sh && echo yes || echo no'])
         ]);
         const pid = (pidRes.stdout || '').trim();
         return ok({
-            running:  pid !== '',
-            pid:      pid ? parseInt(pid) : null,
-            log:      (logRes.stdout || '').trim().split('\n').filter(Boolean)
+            running:         pid !== '',
+            pid:             pid ? parseInt(pid) : null,
+            log:             (logRes.stdout || '').trim().split('\n').filter(Boolean),
+            script_present:  (scriptRes.stdout || '').trim() === 'yes'
         });
     } catch(e) {
         return mkErr('exec_failed');

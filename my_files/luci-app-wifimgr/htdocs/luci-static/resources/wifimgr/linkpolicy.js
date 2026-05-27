@@ -70,6 +70,16 @@ function renderDaemonRow(sd, onRefresh) {
         return d;
     }
 
+    if (!sd.script_present) {
+        d.appendChild(el('span', {
+            style: 'display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#444'
+        }));
+        d.appendChild(sp('mlo-steerd: ', 'color:#aaa;font-size:13px'));
+        d.appendChild(sp('not installed on this device', 'color:#555;font-size:13px'));
+        d.appendChild(sp(' — deploy /root/mlo-steerd.sh on the AP router', 'color:#333;font-size:11px;margin-left:4px'));
+        return d;
+    }
+
     var running = sd.running;
 
     // Status dot
