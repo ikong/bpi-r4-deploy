@@ -12,27 +12,22 @@ echo "  BPI-R4 - Install rescue system to NAND"
 echo "=================================================="
 echo ""
 
-# Board variant selection
-echo "Select your board variant:"
-echo "  1) BPI-R4 4GB"
-echo "  2) BPI-R4 8GB  (required for UniFi stack)"
-echo "  3) BPI-R4 Pro 8X"
+# RAM variant selection
+echo "Select your board RAM variant:"
+echo "  1) 4GB"
+echo "  2) 8GB  (required for UniFi stack)"
 echo ""
-printf "Enter choice [1-3]: "
+printf "Enter choice [1-2]: "
 read RAM_CHOICE
 
 case "${RAM_CHOICE}" in
     1)
         NAND_IMG="${INSTALL_DIR}/.snand-img-4gb.bin"
-        RAM_LABEL="BPI-R4 4GB"
+        RAM_LABEL="4GB"
         ;;
     2)
         NAND_IMG="${INSTALL_DIR}/.snand-img-8gb.bin"
-        RAM_LABEL="BPI-R4 8GB"
-        ;;
-    3)
-        NAND_IMG="${INSTALL_DIR}/.snand-img-pro.bin"
-        RAM_LABEL="BPI-R4 Pro 8X"
+        RAM_LABEL="8GB"
         ;;
     *)
         echo "ERROR: Invalid choice!"

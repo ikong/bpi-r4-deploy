@@ -796,11 +796,12 @@ endif
 endef
 TARGET_DEVICES += bananapi_bpi-r4-lite
 
-define Device/bananapi_bpi-r4-pro
+define Device/bananapi_bpi-r4-pro-8x
   DEVICE_MODEL := BPi-R4-Pro-8X
-  DEVICE_DTS := mt7988a-bananapi-bpi-r4-pro
-  DEVICE_DTS_CONFIG := config-mt7988a-bananapi-bpi-r4-pro
+  DEVICE_DTS := mt7988a-bananapi-bpi-r4-pro-8x
+  DEVICE_DTS_CONFIG := config-mt7988a-bananapi-bpi-r4-pro-8x
   $(call Device/bananapi_bpi-r4-common)
-  UBINIZE_PARTS := fip=:$(STAGING_DIR_IMAGE)/mt7988_bananapi_bpi-r4-pro-snand-u-boot.fip
+  DEVICE_DTS_OVERLAY := mt7988a-bananapi-bpi-r4-pro-8x-emmc mt7988a-bananapi-bpi-r4-pro-8x-sd mt7988a-bananapi-bpi-r4-pro-8x-nvme-ssd2
+  UBINIZE_PARTS := fip=:$(STAGING_DIR_IMAGE)/mt7988_bananapi_bpi-r4-pro-8x-snand-u-boot.fip
 endef
-TARGET_DEVICES += bananapi_bpi-r4-pro
+TARGET_DEVICES += bananapi_bpi-r4-pro-8x
