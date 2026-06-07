@@ -1,6 +1,6 @@
 --- /dev/null	2026-06-03 07:32:46.481863000 +0200
 +++ b/arch/arm64/boot/dts/mediatek/mt7988a-bananapi-bpi-r4-pro-8x.dts	2026-06-03 07:32:37.479298898 +0200
-@@ -0,0 +1,813 @@
+@@ -0,0 +1,795 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 +/*
 + * Copyright (C) 2022 MediaTek Inc.
@@ -659,24 +659,6 @@
 +};
 +
 +/ {
-+	reg_1p8v: regulator-1p8v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "fixed-1.8V";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
-+	reg_3p3v: regulator-3p3v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "fixed-3.3V";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-boot-on;
-+		regulator-always-on;
-+	};
-+
 +	fan: pwm-fan {
 +		compatible = "pwm-fan";
 +		cooling-levels = <0 80 128 255>;

@@ -4,7 +4,16 @@
 
 set -e
 
-NAND_IMG="/root/install-dir/.snand-img.bin"
+# Image search order: explicit argument, /tmp/, embedded SD card copy
+if [ -n "${1:-}" ]; then
+    NAND_IMG="$1"
+elif [ -f "/tmp/openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-snand-img.bin" ]; then
+    NAND_IMG="/tmp/openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-snand-img.bin"
+elif [ -f "/tmp/snand-img.bin" ]; then
+    NAND_IMG="/tmp/snand-img.bin"
+else
+    NAND_IMG="/root/install-dir/.snand-img.bin"
+fi
 
 echo ""
 echo "=================================================="
@@ -25,7 +34,7 @@ echo ""
 # Verify image exists
 if [ ! -f "${NAND_IMG}" ]; then
     echo "ERROR: Image file not found: ${NAND_IMG}"
-    echo "       Copy bpi-r4-pro-snand-img.bin to ${INSTALL_DIR}/"
+    echo "       Download snand-img.bin to /tmp/ or pass path as argument."
     exit 1
 fi
 

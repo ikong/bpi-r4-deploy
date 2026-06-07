@@ -20,6 +20,9 @@ tar xzf /home/ipsec/mtk-feeds-cache.tar.gz
 cd openwrt
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x_rfb-wifi7_nic prepare
 
+# platform.sh: register bpi-r4-pro-8x in fit_do_upgrade, fit_check_image, platform_copy_config
+python3 -c 'f="target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh"; c=open(f).read(); c=c.replace("\tbananapi,bpi-r4-lite|\\\n\tbazis,ax3000wm","\tbananapi,bpi-r4-lite|\\\n\tbananapi,bpi-r4-pro-8x|\\\n\tbazis,ax3000wm"); c=c.replace("\tbananapi,bpi-r4-lite|\\\n\tcmcc,rax3000m","\tbananapi,bpi-r4-lite|\\\n\tbananapi,bpi-r4-pro-8x|\\\n\tcmcc,rax3000m"); open(f,"w").write(c)'
+
 # BPI-R4 patches
 \cp -r ../my_files/453-w-add-bpi-r4-nvme-dtso.patch target/linux/mediatek/patches-6.12/
 \cp -r ../my_files/455-w-add-bpi-r4-pro-nvme-dtso.patch target/linux/mediatek/patches-6.12/
