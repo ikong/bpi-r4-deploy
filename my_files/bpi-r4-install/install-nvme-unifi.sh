@@ -3,6 +3,7 @@
 # Run from NAND rescue system
 
 NVME_DEV="/dev/nvme0n1"
+IS_PRO=0
 GH_USER="woziwrt"
 GH_REPO="bpi-r4-deploy"
 RED='\033[0;31m'
@@ -20,10 +21,14 @@ printf "\n"
 
 printf "Select your board variant:\n"
 printf "\n"
+printf "  BPI-R4:\n"
 printf "  1) 8GB wired UniFi\n"
 printf "  2) 8GB PoE wired UniFi\n"
 printf "\n"
-printf "Enter choice [1-2]: "
+printf "  BPI-R4 Pro 8X:\n"
+printf "  3) Pro 8X wired UniFi\n"
+printf "\n"
+printf "Enter choice [1-3]: "
 read VARIANT
 
 case "$VARIANT" in
@@ -38,6 +43,13 @@ case "$VARIANT" in
         ITB_NAME="bpi-r4-poe.itb"
         IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin"
         SETUP_TAG="release-8gb-poe-wired-unifi"
+        ;;
+    3)
+        GH_TAG="release-pro-8x-unifi"
+        ITB_NAME="bpi-r4-pro-8x.itb"
+        IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin"
+        SETUP_TAG="release-pro-8x-unifi"
+        IS_PRO=1
         ;;
     *)
         printf "\n${RED}ERROR: Invalid choice!${NC}\n\n"
@@ -90,20 +102,58 @@ fi
 printf "        OK -- running from NAND rescue\n"
 printf "\n"
 
+# || Pro: NVMe device detection (two PCIe slots) ||||||||||||||||||||||||||||
+
+if [ "$IS_PRO" = "1" ]; then
+    printf "[ Pro ] Detecting NVMe device...\n"
+
+    NVME_LIST=""
+    for DEV in /dev/nvme0n1 /dev/nvme1n1; do
+        [ -b "$DEV" ] && NVME_LIST="${NVME_LIST} ${DEV}"
+    done
+
+    NVME_COUNT=$(echo "$NVME_LIST" | wc -w)
+
+    if [ "$NVME_COUNT" -eq 0 ]; then
+        printf "\n${RED}ERROR: No NVMe disk found. Check PCIe connection and reboot.${NC}\n\n"
+        exit 1
+    elif [ "$NVME_COUNT" -eq 1 ]; then
+        NVME_DEV=$(echo "$NVME_LIST" | tr -d ' ')
+        printf "        OK -- found %s\n\n" "$NVME_DEV"
+    else
+        printf "\n  Multiple NVMe disks found. Select the target disk:\n\n"
+        N=1
+        for DEV in $NVME_LIST; do
+            printf "  %d) %s\n" "$N" "$DEV"
+            N=$((N + 1))
+        done
+        printf "\n  Enter choice: "
+        read NVME_CHOICE
+        NVME_DEV=$(echo "$NVME_LIST" | tr ' ' '\n' | sed -n "${NVME_CHOICE}p")
+        if [ ! -b "$NVME_DEV" ]; then
+            printf "\n${RED}ERROR: Invalid choice!${NC}\n\n"
+            exit 1
+        fi
+        printf "        OK -- selected %s\n\n" "$NVME_DEV"
+    fi
+fi
+
 # || 2. NVMe device check |||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 printf "[ 2/7 ] Checking NVMe device...\n"
 
-if [ ! -b "$NVME_DEV" ]; then
+if [ "$IS_PRO" = "1" ]; then
+    printf "        OK -- %s (detected above)\n\n" "$NVME_DEV"
+elif [ ! -b "$NVME_DEV" ]; then
     printf "\n"
     printf "${RED}ERROR: NVMe disk not found (%s does not exist).${NC}\n" "$NVME_DEV"
     printf "       Check physical connection and reboot.\n"
     printf "\n"
     exit 1
+else
+    printf "        OK -- found %s\n" "$NVME_DEV"
+    printf "\n"
 fi
-
-printf "        OK -- found %s\n" "$NVME_DEV"
-printf "\n"
 
 # || 3. SMART health check ||||||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -211,8 +261,8 @@ case "$USE_LOCAL" in
         printf "\n"
         printf "        INFO: Using local files from /tmp\n"
         printf "        Checking files...\n"
-        ITB="/tmp/openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-squashfs-sysupgrade.itb"
-        IMG="/tmp/openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-nvme-img.bin"
+        ITB="/tmp/${ITB_NAME}"
+        IMG="/tmp/${IMG_NAME}"
         if [ ! -f "$ITB" ]; then
             printf "${RED}ERROR: %s not found!${NC}\n" "$ITB"; exit 1
         fi
@@ -349,7 +399,7 @@ printf "        OK\n\n"
 printf "        Writing kernel to p1...\n"
 mkdir -p /mnt/nvme
 mount /dev/nvme0n1p1 /mnt/nvme
-cp "$ITB" /mnt/nvme/bpi-r4.itb
+cp "$ITB" /mnt/nvme/${ITB_NAME}
 sync
 umount /dev/nvme0n1p1
 printf "        OK -- kernel written to p1\n\n"

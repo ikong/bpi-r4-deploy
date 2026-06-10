@@ -6,13 +6,13 @@ on:
       variant:
         description: 'Build variant'
         required: true
-        default: 'standard'
+        default: 'pro'
         type: choice
         options:
-          - standard
-          - wired
           - pro
           - pro-wired
+          - standard
+          - wired
       repo_commit:
         description: 'Commit hash of this repository (leave empty for latest)'
         required: false
@@ -45,10 +45,10 @@ jobs:
             echo "RELEASE_TAGS=release-4gb-wired release-4gb-poe-wired release-8gb-wired release-8gb-poe-wired release-8gb-wired-unifi release-8gb-poe-wired-unifi" >> $GITHUB_ENV
           elif [ "$VARIANT" = "pro" ]; then
             echo "BUILDER=./builder-pro-8x.sh" >> $GITHUB_ENV
-            echo "RELEASE_TAGS=release-pro-standard" >> $GITHUB_ENV
+            echo "RELEASE_TAGS=release-pro-8x-standard" >> $GITHUB_ENV
           elif [ "$VARIANT" = "pro-wired" ]; then
             echo "BUILDER=./builder-pro-8x-wired.sh" >> $GITHUB_ENV
-            echo "RELEASE_TAGS=release-pro-wired release-pro-unifi" >> $GITHUB_ENV
+            echo "RELEASE_TAGS=release-pro-8x-wired release-pro-8x-unifi" >> $GITHUB_ENV
           else
             echo "BUILDER=./builder-wifimgr-universal.sh" >> $GITHUB_ENV
             echo "RELEASE_TAGS=release-4gb-standard release-4gb-poe release-8gb-standard release-8gb-poe" >> $GITHUB_ENV
@@ -208,12 +208,14 @@ jobs:
           # Pro variants
           if [ "$VARIANT" = "pro" ] || [ "$VARIANT" = "pro-wired" ]; then
             make_release_dir rel-pro \
-              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-squashfs-sysupgrade.itb" \
-              "bpi-r4-pro.itb" \
-              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-nvme-img.bin" \
-              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-sdcard.img.gz" \
-              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-emmc-img.bin" \
-              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-snand-img.bin"
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-squashfs-sysupgrade.itb" \
+              "bpi-r4-pro-8x.itb" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-sdcard.img.gz" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-emmc-img.bin" \
+              "openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-snand-img.bin"
+            [ -d "rel-pro" ] && cp rescue/bpi-r4-pro-rescue-sdcard.img.gz rel-pro/
+            [ -d "rel-pro" ] && cp rescue/bpi-r4-pro-snand-img.bin rel-pro/
           fi
 
           # SD rescue image into all R4 release dirs
@@ -409,31 +411,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish release-pro-standard
+      - name: Publish release-pro-8x-standard
         if: github.event.inputs.variant == 'pro'
         run: |
-          gh release delete release-pro-standard --yes 2>/dev/null || true
-          gh release create release-pro-standard rel-pro/* \
+          gh release delete release-pro-8x-standard --yes 2>/dev/null || true
+          gh release create release-pro-8x-standard rel-pro/* \
             --title "BPI-R4 Pro 8X standard WiFi (latest)" \
             --notes "Variant: standard (WiFi) | RAM: 8GB | BPI-R4 Pro 8X | Commit: ${{ github.event.inputs.repo_commit || github.sha }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish release-pro-wired
+      - name: Publish release-pro-8x-wired
         if: github.event.inputs.variant == 'pro-wired'
         run: |
-          gh release delete release-pro-wired --yes 2>/dev/null || true
-          gh release create release-pro-wired rel-pro-wired/* \
+          gh release delete release-pro-8x-wired --yes 2>/dev/null || true
+          gh release create release-pro-8x-wired rel-pro-wired/* \
             --title "BPI-R4 Pro 8X wired (latest)" \
             --notes "Variant: wired (no WiFi) | RAM: 8GB | BPI-R4 Pro 8X | Commit: ${{ github.event.inputs.repo_commit || github.sha }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish release-pro-unifi
+      - name: Publish release-pro-8x-unifi
         if: github.event.inputs.variant == 'pro-wired'
         run: |
-          gh release delete release-pro-unifi --yes 2>/dev/null || true
-          gh release create release-pro-unifi rel-pro-unifi/* \
+          gh release delete release-pro-8x-unifi --yes 2>/dev/null || true
+          gh release create release-pro-8x-unifi rel-pro-unifi/* \
             --title "BPI-R4 Pro 8X wired UniFi (latest)" \
             --notes "Variant: wired (no WiFi) | RAM: 8GB | BPI-R4 Pro 8X | UniFi stack | Commit: ${{ github.event.inputs.repo_commit || github.sha }}"
         env:

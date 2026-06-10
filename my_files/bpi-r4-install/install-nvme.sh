@@ -36,9 +36,8 @@ printf "\n"
 printf "  BPI-R4 Pro 8X:\n"
 printf "  11) Pro standard (WiFi)\n"
 printf "  12) Pro wired (no WiFi)\n"
-printf "  13) Pro wired UniFi\n"
 printf "\n"
-printf "Enter choice [1-13]: "
+printf "Enter choice [1-12]: "
 read VARIANT
 
 case "$VARIANT" in
@@ -54,7 +53,6 @@ case "$VARIANT" in
    10) GH_TAG="release-8gb-poe-wired-unifi"; ITB_NAME="bpi-r4-poe.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-poe-8gb-nvme-img.bin" ;;
    11) GH_TAG="release-pro-8x-standard";     ITB_NAME="bpi-r4-pro-8x.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin"; IS_PRO=1 ;;
    12) GH_TAG="release-pro-8x-wired";        ITB_NAME="bpi-r4-pro-8x.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin"; IS_PRO=1 ;;
-   13) GH_TAG="release-pro-8x-unifi";        ITB_NAME="bpi-r4-pro-8x.itb"; IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin"; IS_PRO=1 ;;
     *)
         printf "\n${RED}ERROR: Invalid choice!${NC}\n\n"
         exit 1
