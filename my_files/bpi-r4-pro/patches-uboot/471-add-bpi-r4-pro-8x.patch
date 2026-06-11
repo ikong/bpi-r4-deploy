@@ -821,11 +821,11 @@
 +};
 +
 +&pio {
-+	/* 1L1 0=key-b (CN18), 1=key-m (CN14/NVMe) - route to CN14 for NVMe boot */
-+	pcie-3-hog {
++	/* CN15 M.2 key-B power (SMRT pin): LOW = CN15 powered, HIGH = CN13 powered */
++	pcie-2-hog {
 +		gpio-hog;
-+		gpios = <63 GPIO_ACTIVE_HIGH>;
-+		output-high;
++		gpios = <79 GPIO_ACTIVE_HIGH>;
++		output-low;
 +	};
 +
 +	i2c1_pins: i2c1-pins {
