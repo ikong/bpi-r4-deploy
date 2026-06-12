@@ -827,11 +827,11 @@
 +};
 +
 +&pio {
-+	/* CN15 M.2 key-B power (SMRT pin): LOW = CN15 powered, HIGH = CN13 powered */
++	/* 1L0: HIGH=CN13 (empty M-key), LOW=CN15 (B-key LTE) — HIGH avoids PCIe link training on CN15 */
 +	pcie-2-hog {
 +		gpio-hog;
 +		gpios = <79 GPIO_ACTIVE_HIGH>;
-+		output-low;
++		output-high;
 +	};
 +
 +	/* PCIe3 mux: HIGH = CN14 key-M NVMe, LOW = CN18 key-B SIM */
