@@ -259,14 +259,13 @@ jobs:
           fi
 
       - name: Publish luci-app-wifimgr APK
-        if: contains(fromJSON('["standard", "pro-8x", "pro-8x-wired"]'), github.event.inputs.variant)
         run: |
           APK=$(ls openwrt/bin/packages/aarch64_cortex-a53/luci/luci-app-wifimgr-*.apk 2>/dev/null | head -1)
-          echo "APK_PATH=$APK" >> $GITHUB_ENV
-          echo "APK_NAME=$(basename $APK)" >> $GITHUB_ENV
+          echo "APK_PATH=${APK:-}" >> $GITHUB_ENV
+          echo "APK_NAME=$(basename ${APK:-})" >> $GITHUB_ENV
 
       - name: Publish wifimgr-latest release
-        if: contains(fromJSON('["standard", "pro-8x", "pro-8x-wired"]'), github.event.inputs.variant)
+        if: env.APK_PATH != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: wifimgr-latest
