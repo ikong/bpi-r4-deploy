@@ -100,7 +100,7 @@ chmod -R 755 feeds/luci/applications/luci-app-sms-tool-js/root
 #chmod -R 755 package/luci-app-wifimgr/root
 chmod -R 755 feeds/packages/utils/modemdata/files/usr/share
 
-\cp -r ../configs/my_defconfig-8x-full .config
+\cp -r ../configs/my_defconfig-8x-wired .config
 make defconfig
 echo "CONFIG_PACKAGE_trusted-firmware-a-mt7988-emmc-comb-4bg=y" >> .config
 echo "CONFIG_PACKAGE_trusted-firmware-a-mt7988-sdmmc-comb-4bg=y" >> .config
