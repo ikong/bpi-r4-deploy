@@ -71,6 +71,8 @@ Complete install system that runs entirely on GitHub — no Linux machine needed
 
 > **NVMe boot** is controlled by U-Boot environment, not DIP switch. After running `install-nvme.sh`, the device boots from NVMe automatically — DIP stays at **NAND** (A=0, B=1) and is never changed again.
 
+> NAND and eMMC are fully functional permanent options. NVMe is recommended for larger storage needs — required for the UniFi stack.
+
 ---
 
 ## Part A — BPI-R4: Install
