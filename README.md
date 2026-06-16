@@ -213,15 +213,9 @@ sh unifi-network-setup.sh
 
 ### Adopting an Access Point
 
-After factory reset the AP auto-discovers the Network Application via DNS (`unifi` → `192.168.1.2`). It appears as "Pending adoption" within a minute.
-
-If auto-discovery fails (older firmware):
-
-```
-ssh ubnt@<AP_IP> "/usr/bin/syswrapper.sh set-inform http://192.168.1.2:8080/inform"
-```
-
-`<AP_IP>` visible in LuCI (`http://192.168.1.1:8081`) → Network → DHCP Leases. Default credentials: `ubnt` / `ubnt`
+1. Connect the AP to a LAN port and power it on.
+2. Hardware reset (hold reset button until LED changes).
+3. Network Application dashboard → **Devices** — AP appears for adoption.
 
 ---
 
