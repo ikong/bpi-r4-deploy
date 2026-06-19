@@ -1,0 +1,58 @@
+From 06e578a27000f6252dfd469ac7a07dc7b89065f7 Mon Sep 17 00:00:00 2001
+From: Petr Wozniak <petr.wozniak@gmail.com>
+Date: Wed, 27 May 2026 16:07:22 +0200
+Subject: [PATCH 2/3] xfrm: fix xfrm_dev_offload_ok() returning true for
+ software SAs
+
+xfrm_dev_offload_ok() reaches the ok: label when the SA has no
+offload device (dev == NULL, SW SA) because the guard condition
+"(!dev || dev == xfrm_dst_path(dst)->dev)" evaluates true for
+dev == NULL.  The explicit "if (!dev) return true" at ok: then
+incorrectly routes the SW SA onto the GSO offload path.
+
+This triggers the following chain on platforms with an async crypto
+engine (e.g. MediaTek EIP-197):
+
+  xfrm_output() -> secpath_set() -> esp4_gso_encap() (no encryption,
+  marks skb) -> validate_xmit_xfrm() -> esp_xmit() -> async crypto
+  -> -EINPROGRESS -> validate_xmit_xfrm returns NULL
+
+On real netdevs (noqueue absent) sch_direct_xmit() handles NULL
+gracefully and async crypto completes the packet via
+xfrm_dev_resume().  On bridge netdevs (noqueue qdisc) the direct
+branch of __dev_queue_xmit() initialises rc to -ENOMEM and never
+overwrites it when skb is NULL, propagating -ENOMEM to userspace as
+"sendmsg: Out of memory" on every packet.
+
+On synchronous platforms (x86/ARM without a dedicated crypto engine)
+crypto_aead_encrypt() completes inline, -EINPROGRESS never occurs,
+and the bug is latent.
+
+Fix: return false for dev == NULL so SW SAs use the normal inline
+path in xfrm_output_one() via esp4_output().  On -EINPROGRESS,
+xfrm_output_resume() converts it to 0 and the async callback
+re-enters xfrm_output_resume() to deliver the encrypted packet
+correctly.  HW offload SAs (dev != NULL) are unaffected.
+
+Fixes: 9e1437937bdd ("xfrm: Add xfrm_dev_offload_ok helper")
+Signed-off-by: Petr Wozniak <petr.wozniak@gmail.com>
+---
+ net/xfrm/xfrm_device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/xfrm/xfrm_device.c b/net/xfrm/xfrm_device.c
+index 550457e4c..5454be0b2 100644
+--- a/net/xfrm/xfrm_device.c
++++ b/net/xfrm/xfrm_device.c
+@@ -434,7 +434,7 @@ bool xfrm_dev_offload_ok(struct sk_buff *skb, struct xfrm_state *x)
+ 
+ ok:
+ 	if (!dev)
+-		return true;
++		return false;
+ 
+ 	check_tunnel_size = x->xso.type == XFRM_DEV_OFFLOAD_PACKET &&
+ 			    x->props.mode == XFRM_MODE_TUNNEL;
+-- 
+2.51.0
+
