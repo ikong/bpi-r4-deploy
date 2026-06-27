@@ -13,3 +13,13 @@ uci set network.wan.device='eth1'
 uci set network.wan6.device='eth1'
 
 uci commit network
+
+# Fix /etc/board.json so the LuCI status page monitors each LAN port
+# individually instead of falling back to the generic "default" device.
+# Cosmetic only (LuCI port display); the UCI bridge above is what carries
+# traffic. (GH issue #17 - reported by klamath on real Pro 8X hardware.)
+. /lib/functions/uci-defaults.sh
+board_config_update
+ucidef_set_interface_lan "mxl_lan0 mxl_lan1 mxl_lan2 mxl_lan3 mxl_lan5 eth3"
+ucidef_set_interface_wan "eth1"
+board_config_flush
