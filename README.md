@@ -13,8 +13,8 @@ Complete install system that runs entirely on GitHub — no Linux machine needed
 - [Board variants](#board-variants)
 - [DIP switch reference](#dip-switch-reference)
 - [Part A — BPI-R4: Install](#part-a--bpi-r4-install)
-  - [Step 1 — Flash rescue SD card](#step-1--flash-rescue-sd-card)
-  - [Step 2 — Install NAND system](#step-2--install-nand-system)
+  - [Step 1 — Flash the SD card](#step-1--flash-the-sd-card)
+  - [Step 2 — Write the lean NAND installer](#step-2--write-the-lean-nand-installer)
   - [Step 3 — Install OpenWrt to NVMe](#step-3--install-openwrt-to-nvme)
   - [Step 3 alternative — Install to eMMC](#step-3-alternative--install-to-emmc)
 - [Part B — BPI-R4: UniFi stack](#part-b--bpi-r4-unifi-stack)
@@ -77,17 +77,33 @@ Complete install system that runs entirely on GitHub — no Linux machine needed
 
 ## Part A — BPI-R4: Install
 
-### Step 1 — Flash rescue SD card
+The SD card is a **full, self-contained OpenWrt system**. It boots on its own and
+ships the `/root/install-dir/` installer scripts. From there you write a small
+"lean" installer to NAND, and the NAND system is what installs eMMC and NVMe.
 
-1. Go to [Releases](https://github.com/woziwrt/bpi-r4-deploy/releases) and find **any release** — all releases contain the same SD rescue image `bpi-r4-rescue-sdcard.img.gz`.
-2. Download `bpi-r4-rescue-sdcard.img.gz`.
-3. Flash it to a microSD card using [Balena Etcher](https://etcher.balena.io/).
-4. Insert the SD card, set DIP **A=1, B=1** (SD boot) and power on.
-5. Connect via SSH: `ssh root@192.168.1.1` (no password).
+> **Why go through NAND?** eMMC and the SD card share the same MMC controller, so
+> eMMC cannot be written while you are booted from SD. Installing eMMC (and, for a
+> consistent flow, NVMe) is therefore always done from the NAND system.
+
+### Step 1 — Flash the SD card
+
+1. Go to [Releases](https://github.com/woziwrt/bpi-r4-deploy/releases) and pick the
+   release for your **RAM variant**, then download its **SD image**:
+
+   | RAM | Release | SD image |
+   |---|---|---|
+   | 4 GB | `release-4gb-standard` | `openwrt-mediatek-filogic-bananapi_bpi-r4-sdcard.img.gz` |
+   | 8 GB | `release-8gb-standard` | `openwrt-mediatek-filogic-bananapi_bpi-r4-8gb-sdcard.img.gz` |
+
+   > PoE boards use the `release-*-poe` tags and the matching `…-poe-…-sdcard.img.gz` image.
+
+2. Flash it to a microSD card using [Balena Etcher](https://etcher.balena.io/).
+3. Insert the SD card, set DIP **A=1, B=1** (SD boot) and power on.
+4. Connect via SSH: `ssh root@192.168.1.1` (no password).
 
 ---
 
-### Step 2 — Install NAND system
+### Step 2 — Write the lean NAND installer
 
 Run from the SD card:
 
@@ -95,7 +111,8 @@ Run from the SD card:
 /root/install-dir/install-nand.sh
 ```
 
-Select your **RAM variant (4 GB or 8 GB)**.
+Select your **RAM variant (4 GB or 8 GB)**, then choose the file source — download
+from GitHub (default) or a local file in `/tmp` (development/testing).
 
 After the script finishes:
 
@@ -103,9 +120,13 @@ After the script finishes:
 2. Set DIP **A=0, B=1** (NAND boot) and power on.
 3. Connect via SSH: `ssh root@192.168.1.1`.
 
+You are now on the NAND system, which is used to install eMMC and NVMe below.
+
 ---
 
 ### Step 3 — Install OpenWrt to NVMe
+
+> Run this **from the NAND system** (DIP A=0, B=1).
 
 > ⚠️ **If you want both NVMe and eMMC:** Run `install-emmc.sh` **before** `install-nvme.sh`. After NVMe installation the device always boots from NVMe.
 
@@ -115,13 +136,16 @@ Make sure a WAN cable is connected, then run:
 /root/install-dir/install-nvme.sh
 ```
 
-Select your **board variant** from the menu. The script checks NVMe health, downloads images (~150–240 MB), writes OpenWrt to NVMe and reboots automatically.
+Select your **board variant** from the menu. The script checks NVMe health, downloads images (~150 MB), writes OpenWrt to NVMe and reboots automatically.
 
 > **Updating** — to update OpenWrt on NVMe, boot into NAND (DIP A=0, B=1) and run `install-nvme.sh` again. Data on p3 is never touched.
 
 ---
 
 ### Step 3 alternative — Install to eMMC
+
+> Must be run **from the NAND system** (DIP A=0, B=1). eMMC shares its controller
+> with the SD card, so it cannot be written from the SD system.
 
 ```
 /root/install-dir/install-emmc.sh
