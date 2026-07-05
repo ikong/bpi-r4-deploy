@@ -94,6 +94,20 @@ chmod +x files/usr/sbin/boot-nand
 
 \cp -r ../my_files/luci-app-wifimgr/ package/luci-app-wifimgr/
 
+# --- AmneziaWG (awg-openwrt scheme, built in-tree against kernel 6.12) ---
+# Clone the awg-openwrt package repo and drop its three package sources into the tree.
+# The kmod Makefile fetches amneziawg-linux-kernel-module and compiles it against
+# $(LINUX_DIR), so the module matches the image kernel exactly (correct vermagic).
+: "${AWG_OPENWRT_REPO:=https://github.com/Slava-Shchipunov/awg-openwrt.git}"
+: "${AWG_OPENWRT_REF:=master}"
+rm -rf ../awg-openwrt
+git clone --depth 1 --branch "${AWG_OPENWRT_REF}" "${AWG_OPENWRT_REPO}" ../awg-openwrt
+mkdir -p package/amneziawg
+\cp -r ../awg-openwrt/kmod-amneziawg       package/amneziawg/kmod-amneziawg
+\cp -r ../awg-openwrt/amneziawg-tools      package/amneziawg/amneziawg-tools
+\cp -r ../awg-openwrt/luci-proto-amneziawg package/amneziawg/luci-proto-amneziawg
+# --- end AmneziaWG ---
+
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
@@ -113,6 +127,14 @@ make defconfig
 echo "CONFIG_PACKAGE_trusted-firmware-a-mt7988-emmc-comb-4bg=y" >> .config
 echo "CONFIG_PACKAGE_trusted-firmware-a-mt7988-sdmmc-comb-4bg=y" >> .config
 echo "CONFIG_PACKAGE_trusted-firmware-a-mt7988-spim-nand-ubi-comb-4bg=y" >> .config
+
+# --- AmneziaWG package selection ---
+echo "CONFIG_PACKAGE_kmod-amneziawg=y"          >> .config
+echo "CONFIG_PACKAGE_amneziawg-tools=y"         >> .config
+echo "CONFIG_PACKAGE_luci-proto-amneziawg=y"    >> .config
+echo "CONFIG_PACKAGE_luci-i18n-amneziawg-ru=y"  >> .config
+make defconfig
+# --- end AmneziaWG ---
 
 
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x_rfb-wifi7_nic build
