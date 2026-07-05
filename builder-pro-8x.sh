@@ -133,6 +133,10 @@ echo "CONFIG_PACKAGE_kmod-amneziawg=y"          >> .config
 echo "CONFIG_PACKAGE_amneziawg-tools=y"         >> .config
 echo "CONFIG_PACKAGE_luci-proto-amneziawg=y"    >> .config
 echo "CONFIG_PACKAGE_luci-i18n-amneziawg-ru=y"  >> .config
+# --- kmods required by podkop / sing-box (built in-tree, correct vermagic) ---
+echo "CONFIG_PACKAGE_kmod-nft-tproxy=m"          >> .config
+echo "CONFIG_PACKAGE_kmod-inet-diag=m"           >> .config
+echo "CONFIG_PACKAGE_kmod-tun=m"                 >> .config
 make defconfig
 # --- end AmneziaWG ---
 
