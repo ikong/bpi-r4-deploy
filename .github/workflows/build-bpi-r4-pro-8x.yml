@@ -32,6 +32,14 @@ on:
         description: 'MTK SDK commit hash (leave empty to use build-versions.env)'
         required: false
         default: ''
+      awg_openwrt_ref:
+        description: 'awg-openwrt branch or tag (default: master)'
+        required: false
+        default: 'master'
+      awg_openwrt_repo:
+        description: 'awg-openwrt repo URL (leave empty for Slava-Shchipunov/awg-openwrt)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -93,6 +101,8 @@ jobs:
         env:
           OPENWRT_COMMIT: ${{ env.OPENWRT_COMMIT }}
           MTK_COMMIT: ${{ env.MTK_COMMIT }}
+          AWG_OPENWRT_REF: ${{ github.event.inputs.awg_openwrt_ref || 'master' }}
+          AWG_OPENWRT_REPO: ${{ github.event.inputs.awg_openwrt_repo || 'https://github.com/Slava-Shchipunov/awg-openwrt.git' }}
 
       - name: Prepare release artifacts
         run: |
