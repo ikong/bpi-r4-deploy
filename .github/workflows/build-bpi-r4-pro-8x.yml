@@ -1,7 +1,9 @@
-# Build base (default when no commit inputs given) — keep in sync with the builder scripts:
-#   OPENWRT_COMMIT: 6dead2869209f4ff9825f3169c129c5ef04f6273  (openwrt-25.12 HEAD, 2026-06-28)
-#   MTK_COMMIT:     13f39a7448764466f0ab5eb290fdefd9a9d2335b  (github git01 HEAD, 2026-06-28)
-# Bumped 2026-06-28, HW verified on both routers (prev base 949487e0 / 42c9ff = 6.12.92).
+# Build base is defined in the builder scripts themselves (single source of truth):
+#   builder-pro-8x.sh / builder-pro-8x-wired.sh -> git clone --branch main + checkout MTK 822c2f06...
+#   OpenWrt: 6dead28... (openwrt-25.12 HEAD)  |  MTK SDK: 822c2f06... (main HEAD)
+# Migrated git01->main 2026-07-05; eMMC/NVMe autoexpand HW verified on Pro 8X 2026-07-06.
+# NOTE: this workflow no longer reads build-versions.env (that file drives the standard-R4
+#       deploy.yml only). Optional dispatch inputs openwrt_commit/mtk_commit override the builder.
 #
 # Previous bases:
 #   2026-06-16: 949487e0... / 3f8797ce... (6.12.92)
@@ -57,9 +59,10 @@ jobs:
         with:
           ref: ${{ github.event.inputs.repo_commit || github.sha }}
 
-      - name: Load build versions
+      - name: Load optional commit overrides
         run: |
-          grep -v '^\s*#' build-versions.env | grep -v '^\s*$' >> $GITHUB_ENV
+          # Commit defaults live in the builder scripts (git01->main migration). Only forward
+          # explicit dispatch inputs here; otherwise the builder's own defaults are used.
           [ -n "${{ github.event.inputs.openwrt_commit }}" ] && echo "OPENWRT_COMMIT=${{ github.event.inputs.openwrt_commit }}" >> $GITHUB_ENV || true
           [ -n "${{ github.event.inputs.mtk_commit }}" ] && echo "MTK_COMMIT=${{ github.event.inputs.mtk_commit }}" >> $GITHUB_ENV || true
 
