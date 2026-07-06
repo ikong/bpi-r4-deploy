@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# BUMP 2026-06-28 (HW overeno; predchozi: 949487e0 / 42c9ff = 6.12.92):
-#   OpenWrt:  6dead2869209f4ff9825f3169c129c5ef04f6273  (openwrt-25.12 HEAD)
-#   MTK SDK:  13f39a7448764466f0ab5eb290fdefd9a9d2335b  (github git01 HEAD)
+# BUMP 2026-07-05 (main migration; predchozi git01 base: 13f39a74 = wed-refactor 06-25):
+#   OpenWrt:  6dead2869209f4ff9825f3169c129c5ef04f6273  (openwrt-25.12 HEAD, BEZE ZMENY)
+#   MTK SDK:  822c2f0603614e47ec8496571043431494fd2841  (MAIN HEAD; git01 mrazi -> MTK doporucil main)
 
 rm -rf openwrt
 rm -rf mtk-openwrt-feeds
@@ -11,8 +11,8 @@ rm -rf mtk-openwrt-feeds
 git clone --branch openwrt-25.12 https://github.com/openwrt/openwrt.git openwrt
 cd openwrt; git checkout ${OPENWRT_COMMIT:-6dead2869209f4ff9825f3169c129c5ef04f6273}; cd -;
 
-git clone --branch git01 https://github.com/mediatek/mtk-openwrt-feeds mtk-openwrt-feeds
-( cd mtk-openwrt-feeds && git checkout ${MTK_COMMIT:-13f39a7448764466f0ab5eb290fdefd9a9d2335b} )
+git clone --branch main https://github.com/mediatek/mtk-openwrt-feeds mtk-openwrt-feeds
+( cd mtk-openwrt-feeds && git checkout ${MTK_COMMIT:-822c2f0603614e47ec8496571043431494fd2841} )
 
 \cp -r my_files/999-sfp-10-additional-quirks.patch mtk-openwrt-feeds/25.12/files/target/linux/mediatek/patches-6.12
 \cp -r my_files/999-sfp-11-rtl8261be-mdio-none.patch mtk-openwrt-feeds/25.12/files/target/linux/mediatek/patches-6.12
@@ -72,6 +72,12 @@ mkdir -p files/etc/uci-defaults
 chmod +x files/etc/uci-defaults/99-set-hostname
 \cp -r ../my_files/99-pro-8x-network files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-pro-8x-network
+
+# SD auto-expand: grow production + fitrw f2fs to fill the SD card on first boot
+# (SD-only, fail-closed gate inside the hook; no-op on eMMC/NVMe/NAND)
+mkdir -p files/lib/preinit
+\cp ../my_files/etc-files/lib/preinit/19-expand-fit-rootfs files/lib/preinit/
+chmod +x files/lib/preinit/19-expand-fit-rootfs
 
 mkdir -p files/etc
 \cp ../my_files/fw_env_pro8x_snand.config files/etc/fw_env.config

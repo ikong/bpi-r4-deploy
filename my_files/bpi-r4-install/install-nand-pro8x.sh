@@ -1,6 +1,11 @@
 #!/bin/sh
-# BPI-R4 Pro 8X - Install OpenWrt to NAND
+# install-nand-pro8x.sh - BPI-R4 Pro 8X - Install OpenWrt to NAND
 # Run from SD card: sh /root/install-dir/install-nand.sh
+#
+# Image source is chosen interactively:
+#   [1] Download from GitHub (default)  -- needs WAN/internet
+#   [2] Use local file from /tmp        -- offline, for development/testing
+# An explicit path argument overrides the menu (e.g. install-nand.sh /tmp/x.bin).
 
 set -e
 
@@ -14,43 +19,67 @@ echo "=================================================="
 echo "  BPI-R4 Pro 8X - Install OpenWrt to NAND"
 echo "=================================================="
 echo ""
-echo "  IMPORTANT: Internet connection (WAN) is required."
-echo ""
-printf "  Is the WAN cable connected? [y/N]: "
-read ANS
-case "$ANS" in
-    y|Y) ;;
-    *) echo "  Connect WAN cable and run this script again."; echo ""; exit 1 ;;
-esac
-echo ""
 
-echo "Checking internet connection..."
-if ! wget -q --spider --timeout=10 "https://github.com" 2>/dev/null; then
-    echo ""
-    echo "ERROR: No internet connection!"
-    echo "       Check WAN cable and router/modem, then try again."
-    echo ""
-    exit 1
-fi
-echo "OK: Internet connection available."
-echo ""
-
-# Image search order: explicit argument, /tmp/, download from GitHub
+# || Image source: explicit arg -> menu ([1] download / [2] local /tmp) ||||||||
 if [ -n "${1:-}" ]; then
     NAND_IMG="$1"
-elif [ -f "/tmp/${SNAND_NAME}" ]; then
-    NAND_IMG="/tmp/${SNAND_NAME}"
+    echo "OK: Using image passed as argument: ${NAND_IMG}"
 else
-    echo "Downloading ${SNAND_NAME}..."
-    wget -O "/tmp/${SNAND_NAME}" \
-        "https://github.com/${GH_USER}/${GH_REPO}/releases/download/${GH_TAG}/${SNAND_NAME}"
-    if [ $? -ne 0 ] || [ ! -s "/tmp/${SNAND_NAME}" ]; then
-        echo "ERROR: Download failed."
-        rm -f "/tmp/${SNAND_NAME}"
-        exit 1
-    fi
-    NAND_IMG="/tmp/${SNAND_NAME}"
+    echo "  Select image source:"
+    echo ""
+    echo "    [1] Download from GitHub (default)"
+    echo "    [2] Use local file from /tmp (development/testing)"
+    echo ""
+    printf "  Select [1/2]: "
+    read SRC
+    echo ""
+
+    case "$SRC" in
+        2)
+            NAND_IMG="/tmp/${SNAND_NAME}"
+            echo "INFO: Using local file ${NAND_IMG}"
+            if [ ! -f "${NAND_IMG}" ]; then
+                echo "ERROR: ${NAND_IMG} not found!"
+                echo "       Copy it there first, e.g.:"
+                echo "       scp ${SNAND_NAME} root@<router>:/tmp/"
+                exit 1
+            fi
+            echo "OK: Local image found ($(du -h ${NAND_IMG} | cut -f1))."
+            ;;
+        *)
+            echo "  IMPORTANT: Internet connection (WAN) is required to download."
+            echo ""
+            printf "  Is the WAN cable connected? [y/N]: "
+            read ANS
+            case "$ANS" in
+                y|Y) ;;
+                *) echo "  Connect WAN cable and run this script again."; echo ""; exit 1 ;;
+            esac
+            echo ""
+            echo "Checking internet connection..."
+            if ! wget -q --spider --timeout=10 "https://github.com" 2>/dev/null; then
+                echo ""
+                echo "ERROR: No internet connection!"
+                echo "       Check WAN cable and router/modem, then try again."
+                echo ""
+                exit 1
+            fi
+            echo "OK: Internet connection available."
+            echo ""
+            echo "Downloading ${SNAND_NAME}..."
+            if ! wget -O "/tmp/${SNAND_NAME}" \
+                    "https://github.com/${GH_USER}/${GH_REPO}/releases/download/${GH_TAG}/${SNAND_NAME}" \
+                 || [ ! -s "/tmp/${SNAND_NAME}" ]; then
+                echo "ERROR: Download failed."
+                rm -f "/tmp/${SNAND_NAME}"
+                exit 1
+            fi
+            NAND_IMG="/tmp/${SNAND_NAME}"
+            echo "OK: Downloaded ($(du -h ${NAND_IMG} | cut -f1))."
+            ;;
+    esac
 fi
+echo ""
 
 if ! grep -q "fitrw" /proc/mounts 2>/dev/null; then
     echo "ERROR: This script must be run from the SD card!"
@@ -96,7 +125,7 @@ echo "  1. Power off the device"
 echo "  2. Set DIP switches: A=0, B=1 (NAND boot)"
 echo "  3. Power on"
 echo "     NOTE: U-Boot may show 'UBI: Bad EC magic in block XXXX' messages."
-echo "           This is NORMAL on first boot — U-Boot is initializing the NAND."
+echo "           This is NORMAL on first boot -- U-Boot is initializing the NAND."
 echo "  4. Login via SSH or LuCI (http://192.168.1.1) and run:"
 echo "     sh /root/install-dir/install-nvme.sh"
 echo ""

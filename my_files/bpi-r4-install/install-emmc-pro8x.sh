@@ -152,6 +152,20 @@ fi
 sync
 printf "        OK -- image written\n\n"
 
+# Expand 'production' to fill the whole eMMC so the f2fs overlay (rootfs_data)
+# uses the full disk. The dd image is small, so the backup GPT sits at the image
+# end and the GPT thinks the disk ends early -> sgdisk -e relocates the backup
+# GPT to the REAL disk end first, then resizepart grows production. Size is read
+# from sysfs, so this adapts to any eMMC size.
+printf "        Expanding production to fill eMMC...\n"
+sgdisk -e "$EMMC_DEV" >/dev/null 2>&1
+DISK_SECTORS=$(cat /sys/class/block/$(basename "$EMMC_DEV")/size)
+printf "        Real eMMC size: %s sectors (~%s GiB)\n" "$DISK_SECTORS" "$((DISK_SECTORS/2097152))"
+PNUM=$(sgdisk -p "$EMMC_DEV" 2>/dev/null | awk '$NF=="production"{print $1}')
+parted -s "$EMMC_DEV" resizepart "$PNUM" 100%
+partprobe "$EMMC_DEV" 2>/dev/null
+printf "        OK -- production fills eMMC (f2fs overlay fills on first boot)\n\n"
+
 printf "        Writing BL2 to boot partition...\n"
 echo 0 > /sys/block/mmcblk0boot0/force_ro
 dd if="$EMMC_IMG" of="$EMMC_BOOT" bs=512 skip=34 count=512 conv=fsync

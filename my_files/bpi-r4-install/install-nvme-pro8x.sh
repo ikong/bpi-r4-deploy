@@ -276,10 +276,10 @@ partprobe "$NVME_DEV" 2>/dev/null
 sleep 2
 printf "        OK\n\n"
 
-printf "        Repartitioning (p1=256MB, p2=512MB, p3=data)...\n"
+printf "        Repartitioning (p1=256MB, p2=16GiB production, p3=data)...\n"
 sgdisk -d 1 -d 2 "$NVME_DEV"
-sgdisk -n 1:2048:526335    -t 1:8300 -c 1:boot       "$NVME_DEV"
-sgdisk -n 2:526336:1576959 -t 2:FFFF -c 2:production "$NVME_DEV"
+sgdisk -n 1:2048:526335     -t 1:8300 -c 1:boot       "$NVME_DEV"
+sgdisk -n 2:526336:34080767 -t 2:FFFF -c 2:production "$NVME_DEV"
 partprobe "$NVME_DEV"
 sleep 2
 printf "        OK\n\n"
