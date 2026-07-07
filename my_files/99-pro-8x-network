@@ -16,10 +16,27 @@ uci commit network
 
 # Fix /etc/board.json so the LuCI status page monitors each LAN port
 # individually instead of falling back to the generic "default" device.
-# Cosmetic only (LuCI port display); the UCI bridge above is what carries
-# traffic. (GH issue #17 - reported by klamath on real Pro 8X hardware.)
-. /lib/functions/uci-defaults.sh
-board_config_update
-ucidef_set_interface_lan "mxl_lan0 mxl_lan1 mxl_lan2 mxl_lan3 mxl_lan5 eth3"
-ucidef_set_interface_wan "eth1"
-board_config_flush
+#
+# NB: we can't use board_config_update / ucidef_set_interface_* here. Those go
+# through jshn (json_load), which fails with "Failed to parse message data" on
+# this board because the MT7996 Wi-Fi 7 "wlan" section of board.json contains
+# nested arrays (radios[].freq_ranges = [[lo,hi]]) that jshn cannot parse. The
+# call returns rc=0 but writes nothing, so the previous approach was a silent
+# no-op on every boot and board.json stayed at the generic "default" mapping.
+#
+# Rewrite board.json directly via jsonfilter (which parses it fine), replacing
+# only the "network" object and preserving model + wlan. board.json for this
+# board has exactly these three top-level keys. Cosmetic only (LuCI port
+# display); the UCI bridge above is what carries traffic.
+# (GH issue #17 - reported by klamath on real Pro 8X hardware.)
+_bj=/etc/board.json
+if [ -f "$_bj" ]; then
+	_model=$(jsonfilter -i "$_bj" -e '@.model')
+	_wlan=$(jsonfilter -i "$_bj" -e '@.wlan')
+	_net='{"lan":{"ports":["mxl_lan0","mxl_lan1","mxl_lan2","mxl_lan3","mxl_lan5","eth3"],"protocol":"static"},"wan":{"device":"eth1","protocol":"dhcp"}}'
+	if [ -n "$_wlan" ]; then
+		printf '{"model":%s,"network":%s,"wlan":%s}\n' "$_model" "$_net" "$_wlan" > "$_bj"
+	else
+		printf '{"model":%s,"network":%s}\n' "$_model" "$_net" > "$_bj"
+	fi
+fi
