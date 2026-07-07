@@ -6,7 +6,7 @@ NVME_DEV="/dev/nvme0n1"
 IS_PRO=1
 GH_USER="woziwrt"
 GH_REPO="bpi-r4-deploy"
-GH_TAG="release-pro-8x-wired"
+GH_TAG="release-pro-8x-standard"   # default; overridden by the variant menu below
 ITB_NAME="bpi-r4-pro-8x.itb"
 IMG_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-nvme-img.bin"
 ITB="/tmp/${ITB_NAME}"
@@ -21,6 +21,23 @@ printf "=================================================\n"
 printf "  BPI-R4 Pro 8X UniFi NVMe Installer\n"
 printf "=================================================\n"
 printf "\n"
+
+# || 0a. Firmware variant: standard (WiFi) / wired |||||||||||||||||||||||||||||
+
+printf "Select firmware variant:\n"
+printf "\n"
+printf "  1) Standard -- full WiFi 7 (default)\n"
+printf "  2) Wired    -- no WiFi (external AP)\n"
+printf "\n"
+printf "Enter choice [1-2]: "
+read VARIANT_CHOICE
+
+case "$VARIANT_CHOICE" in
+    2) GH_TAG="release-pro-8x-wired";    VARIANT_LABEL="wired (no WiFi)" ;;
+    *) GH_TAG="release-pro-8x-standard"; VARIANT_LABEL="standard (WiFi 7)" ;;
+esac
+
+printf "\n  Variant: %s   [tag: %s]\n\n" "$VARIANT_LABEL" "$GH_TAG"
 
 # || 0b. Disk size profile ||||||||||||||||||||||||||||||||||||||||||||||||||||
 
