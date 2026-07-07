@@ -2,6 +2,9 @@
 # install-nand-pro8x.sh - BPI-R4 Pro 8X - Install OpenWrt to NAND
 # Run from SD card: sh /root/install-dir/install-nand.sh
 #
+# Firmware variant is chosen interactively:
+#   [1] Standard  -- full WiFi 7 (default)
+#   [2] Wired     -- no WiFi
 # Image source is chosen interactively:
 #   [1] Download from GitHub (default)  -- needs WAN/internet
 #   [2] Use local file from /tmp        -- offline, for development/testing
@@ -11,7 +14,7 @@ set -e
 
 GH_USER="woziwrt"
 GH_REPO="bpi-r4-deploy"
-GH_TAG="release-pro-8x-wired"
+GH_TAG="release-pro-8x-standard"   # default; overridden by the variant menu below
 SNAND_NAME="openwrt-mediatek-filogic-bananapi_bpi-r4-pro-8x-snand-img.bin"
 
 echo ""
@@ -20,11 +23,28 @@ echo "  BPI-R4 Pro 8X - Install OpenWrt to NAND"
 echo "=================================================="
 echo ""
 
-# || Image source: explicit arg -> menu ([1] download / [2] local /tmp) ||||||||
+# || Image source: explicit arg -> variant menu -> source menu |||||||||||||||||
 if [ -n "${1:-}" ]; then
     NAND_IMG="$1"
     echo "OK: Using image passed as argument: ${NAND_IMG}"
 else
+    # -- firmware variant (selects the release tag) --------------------------
+    echo "  Select firmware variant:"
+    echo ""
+    echo "    [1] Standard  -- full WiFi 7 (default)"
+    echo "    [2] Wired     -- no WiFi"
+    echo ""
+    printf "  Select [1/2]: "
+    read VAR
+    echo ""
+    case "$VAR" in
+        2) GH_TAG="release-pro-8x-wired";    VARIANT_LABEL="wired (no WiFi)" ;;
+        *) GH_TAG="release-pro-8x-standard"; VARIANT_LABEL="standard (WiFi 7)" ;;
+    esac
+    echo "  Variant: ${VARIANT_LABEL}   [tag: ${GH_TAG}]"
+    echo ""
+
+    # -- image source --------------------------------------------------------
     echo "  Select image source:"
     echo ""
     echo "    [1] Download from GitHub (default)"
@@ -66,7 +86,7 @@ else
             fi
             echo "OK: Internet connection available."
             echo ""
-            echo "Downloading ${SNAND_NAME}..."
+            echo "Downloading ${SNAND_NAME} (${GH_TAG})..."
             if ! wget -O "/tmp/${SNAND_NAME}" \
                     "https://github.com/${GH_USER}/${GH_REPO}/releases/download/${GH_TAG}/${SNAND_NAME}" \
                  || [ ! -s "/tmp/${SNAND_NAME}" ]; then
